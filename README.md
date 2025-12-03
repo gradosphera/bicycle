@@ -8,7 +8,7 @@ Supports TON coins and Jettons (conforming certain criteria)
 Provides REST API for integration.
 Service is ADNL based and interacts directly with node and do not use any third party API.
 
-**Warning** The project is in the testing and proof-of-concepts phase. Use with caution. Suggestions are welcome.
+**Warning** Manual withdrawals from hot wallet is prohibited **do not withdraw funds from a hot wallet bypassing the service, this will lead to a service error**
 
 - [How it works](#How-it-works)
   - [Features](#Features)

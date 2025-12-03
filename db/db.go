@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+	"sync"
+	"time"
+	"unicode/utf8"
+
 	"github.com/gobicycle/bicycle/audit"
 	"github.com/gobicycle/bicycle/config"
 	"github.com/gobicycle/bicycle/core"
@@ -14,10 +19,6 @@ import (
 	"github.com/xssnick/tonutils-go/address"
 	"github.com/xssnick/tonutils-go/ton"
 	"github.com/xssnick/tonutils-go/ton/wallet"
-	"strings"
-	"sync"
-	"time"
-	"unicode/utf8"
 )
 
 type Connection struct {
@@ -881,6 +882,11 @@ func updateExternalWithdrawal(ctx context.Context, tx pgx.Tx, w core.ExternalWit
 			WHERE  msg_uuid = $4 AND address = $5
 			RETURNING query_id
 		`, w.Lt, time.Unix(int64(w.Utime), 0), w.TxHash, w.ExtMsgUuid, w.To).Scan(&queryID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		audit.Log(audit.Error, "external withdrawal message", core.ExternalWithdrawalEvent,
+			fmt.Sprintf("successful withdrawal not linked to any known withdrawal request; possibly a manual hot wallet withdrawal. tx hash: %x", w.TxHash))
+		return fmt.Errorf("anomalous behavior of the TON hot wallet")
+	}
 	if err != nil {
 		return err
 	}
